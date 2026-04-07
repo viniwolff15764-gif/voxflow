@@ -9,6 +9,10 @@ pub struct AudioRecorder {
     channels: u16,
 }
 
+// Safety: AudioRecorder is always accessed behind a Mutex.
+// cpal::Stream is not Send on all platforms but is safe behind Mutex on Windows (our target).
+unsafe impl Send for AudioRecorder {}
+
 impl AudioRecorder {
     pub fn new() -> Result<Self, String> {
         let host = cpal::default_host();

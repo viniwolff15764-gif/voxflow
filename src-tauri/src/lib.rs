@@ -7,7 +7,7 @@ mod tray;
 
 use config::AppConfig;
 use std::sync::{Arc, Mutex};
-use tauri::State;
+use tauri::{Manager, State};
 
 struct AppState {
     config: Arc<Mutex<AppConfig>>,
