@@ -7,28 +7,14 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="widget" class="widget idle">
-    <div class="titlebar" data-tauri-drag-region>
-      <div class="titlebar-left" data-tauri-drag-region>
-        <div class="mic-icon"></div>
-        <span>VoxFlow</span>
-      </div>
-      <div class="titlebar-buttons">
-        <button class="titlebar-btn" id="btn-minimize">─</button>
-        <button class="titlebar-btn close" id="btn-close">✕</button>
-      </div>
+  <div id="widget" class="widget idle" data-tauri-drag-region>
+    <div class="mic-dot"></div>
+    <div class="text-display" id="text-area">
+      <span class="placeholder">Ctrl+Win+Space</span>
     </div>
-
-    <div class="text-area" id="text-area">
-      <span class="placeholder">Segure a tecla e fale...</span>
-    </div>
-
-    <div class="error-msg" id="error-msg"></div>
-
-    <div class="status-bar">
-      <button class="settings-btn" id="btn-settings" title="Configurações">⚙️</button>
-      <span><span class="hotkey" id="hotkey-display">CapsLock</span> <span id="status-text">segure para ditar</span></span>
-    </div>
+    <span class="hotkey-badge" id="hotkey-display">Ctrl+Win+Space</span>
+    <button class="btn-settings" id="btn-settings" title="Configurações">⚙</button>
+    <button class="btn-close" id="btn-close" title="Fechar">✕</button>
   </div>
 
   <script src="js/app.js"></script>

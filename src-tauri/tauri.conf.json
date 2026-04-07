@@ -11,17 +11,15 @@
       {
         "label": "main",
         "title": "VoxFlow",
-        "width": 350,
-        "height": 200,
-        "minWidth": 250,
-        "minHeight": 120,
-        "resizable": true,
+        "width": 280,
+        "height": 56,
+        "minWidth": 200,
+        "minHeight": 56,
+        "resizable": false,
         "alwaysOnTop": true,
         "decorations": false,
         "transparent": true,
-        "skipTaskbar": true,
-        "x": 100,
-        "y": 100
+        "skipTaskbar": true
       }
     ]
   },

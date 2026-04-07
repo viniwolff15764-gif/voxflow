@@ -38,6 +38,8 @@ fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
         .title("VoxFlow — Configurações")
         .inner_size(380.0, 520.0)
         .resizable(false)
+        .transparent(false)
+        .decorations(true)
         .center()
         .build()
         .map_err(|e| e.to_string())?;
@@ -53,6 +55,22 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .setup(move |app| {
+            // Position widget in bottom-right corner
+            if let Some(window) = app.get_webview_window("main") {
+                if let Ok(monitor) = window.current_monitor() {
+                    if let Some(monitor) = monitor {
+                        let size = monitor.size();
+                        let scale = monitor.scale_factor();
+                        let x = (size.width as f64 / scale) - 300.0;
+                        let y = (size.height as f64 / scale) - 80.0;
+                        let _ = window.set_position(tauri::PhysicalPosition::new(
+                            (x * scale) as i32,
+                            (y * scale) as i32,
+                        ));
+                    }
+                }
+            }
+
             // Setup hotkey
             if let Err(e) = hotkey::setup_hotkey(&app.handle(), Arc::clone(&config_for_setup)) {
                 eprintln!("Hotkey setup failed: {}", e);

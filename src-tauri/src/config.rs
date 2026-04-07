@@ -23,7 +23,7 @@ impl Default for AppConfig {
     fn default() -> Self {
         Self {
             groq_api_key: String::new(),
-            hotkey: "CapsLock".to_string(),
+            hotkey: "Ctrl+Win+Space".to_string(),
             language: "pt".to_string(),
             auto_paste: true,
             command_mode: false,

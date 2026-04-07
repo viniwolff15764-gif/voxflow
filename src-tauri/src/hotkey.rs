@@ -193,8 +193,8 @@ pub fn setup_hotkey(app: &AppHandle, config: Arc<Mutex<AppConfig>>) -> Result<()
     )
     .map_err(|e| format!("Failed to init global shortcut: {}", e))?;
 
-    // Register CapsLock (default hotkey)
-    let shortcut = Shortcut::new(None, Code::CapsLock);
+    // Register Ctrl+Win (default hotkey)
+    let shortcut = Shortcut::new(Some(tauri_plugin_global_shortcut::Modifiers::CONTROL | tauri_plugin_global_shortcut::Modifiers::SUPER), Code::Space);
     app.global_shortcut()
         .register(shortcut)
         .map_err(|e| format!("Failed to register hotkey: {}", e))?;
