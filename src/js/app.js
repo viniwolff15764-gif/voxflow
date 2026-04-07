@@ -7,9 +7,10 @@ const pillText = document.getElementById('pill-text');
 const settings = document.getElementById('settings');
 
 const PILL_SIZE = { w: 280, h: 56 };
-const SETTINGS_SIZE = { w: 320, h: 420 };
+const SETTINGS_SIZE = { w: 320, h: 460 };
 
 let isSettings = false;
+let currentHotkey = 'F9';
 
 // === DRAG ===
 pill.addEventListener('mousedown', (e) => {
@@ -65,7 +66,7 @@ listen('recording-stopped', (event) => {
   if (text) {
     pillText.textContent = text;
   } else {
-    pillText.innerHTML = '<span class="placeholder">Ctrl+Win+Space</span>';
+    showPlaceholder();
   }
   setState('idle');
 });
@@ -88,15 +89,20 @@ listen('recording-error', (event) => {
   pillText.textContent = event.payload;
   setTimeout(() => {
     setState('idle');
-    pillText.innerHTML = '<span class="placeholder">Ctrl+Win+Space</span>';
+    showPlaceholder();
   }, 3000);
 });
+
+function showPlaceholder() {
+  pillText.innerHTML = '<span class="placeholder">' + currentHotkey + ' para ditar</span>';
+}
 
 // === CONFIG ===
 async function loadConfig() {
   try {
     const c = await invoke('get_config');
     document.getElementById('api-key').value = c.groq_api_key || '';
+    document.getElementById('hotkey').value = c.hotkey || 'F9';
     document.getElementById('language').value = c.language || 'pt';
     document.getElementById('auto-paste').checked = c.auto_paste;
     document.getElementById('command-mode').checked = c.command_mode;
@@ -110,7 +116,7 @@ async function loadConfig() {
 document.getElementById('btn-save').addEventListener('click', async () => {
   const config = {
     groq_api_key: document.getElementById('api-key').value,
-    hotkey: 'Ctrl+Win+Space',
+    hotkey: document.getElementById('hotkey').value,
     language: document.getElementById('language').value,
     auto_paste: document.getElementById('auto-paste').checked,
     command_mode: document.getElementById('command-mode').checked,
@@ -126,8 +132,10 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   try {
     await invoke('save_config_cmd', { newConfig: config });
     const msg = document.getElementById('save-msg');
-    msg.textContent = 'Salvo! Reinicie o VoxFlow para aplicar.';
+    msg.textContent = 'Salvo! Reinicie o VoxFlow para o novo atalho funcionar.';
     msg.style.display = 'block';
+    currentHotkey = config.hotkey;
+    document.getElementById('hotkey-badge').textContent = currentHotkey;
   } catch (e) {
     alert('Erro: ' + e);
   }
@@ -144,9 +152,18 @@ document.getElementById('link-groq').addEventListener('click', (e) => {
 
 // === INIT ===
 async function init() {
-  const c = await invoke('get_config');
-  if (!c.groq_api_key) {
-    pillText.innerHTML = '<span class="placeholder">Clique ⚙ para configurar</span>';
+  try {
+    const c = await invoke('get_config');
+    currentHotkey = c.hotkey || 'F9';
+    document.getElementById('hotkey-badge').textContent = currentHotkey;
+
+    if (!c.groq_api_key) {
+      pillText.innerHTML = '<span class="placeholder">Clique ⚙ e cole sua API Key</span>';
+    } else {
+      showPlaceholder();
+    }
+  } catch (e) {
+    console.error('Init error:', e);
   }
 }
 

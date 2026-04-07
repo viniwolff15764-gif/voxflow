@@ -5,7 +5,7 @@ use crate::paste;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
-use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Shortcut, ShortcutState};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 struct RecordingState {
     is_recording: bool,
@@ -193,11 +193,25 @@ pub fn setup_hotkey(app: &AppHandle, config: Arc<Mutex<AppConfig>>) -> Result<()
     )
     .map_err(|e| format!("Failed to init global shortcut: {}", e))?;
 
-    // Register Ctrl+Win (default hotkey)
-    let shortcut = Shortcut::new(Some(tauri_plugin_global_shortcut::Modifiers::CONTROL | tauri_plugin_global_shortcut::Modifiers::SUPER), Code::Space);
+    // Register hotkey from config
+    let hotkey_str = config.lock().unwrap().hotkey.clone();
+    let shortcut = parse_hotkey(&hotkey_str);
     app.global_shortcut()
         .register(shortcut)
-        .map_err(|e| format!("Failed to register hotkey: {}", e))?;
+        .map_err(|e| format!("Failed to register hotkey '{}': {}", hotkey_str, e))?;
 
     Ok(())
+}
+
+fn parse_hotkey(key: &str) -> Shortcut {
+    match key {
+        "F8" => Shortcut::new(None, Code::F8),
+        "F9" => Shortcut::new(None, Code::F9),
+        "F10" => Shortcut::new(None, Code::F10),
+        "Ctrl+Shift+Space" => Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::Space),
+        "Ctrl+Shift+V" => Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyV),
+        "Alt+Space" => Shortcut::new(Some(Modifiers::ALT), Code::Space),
+        "Ctrl+Alt+Space" => Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::Space),
+        _ => Shortcut::new(None, Code::F9), // fallback
+    }
 }

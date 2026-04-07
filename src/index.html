@@ -11,9 +11,9 @@
   <div id="pill" class="pill idle">
     <div class="mic-dot"></div>
     <div class="pill-text" id="pill-text">
-      <span class="placeholder">Ctrl+Win+Space</span>
+      <span class="placeholder" id="placeholder-text">F9 para ditar</span>
     </div>
-    <span class="hotkey-badge">Ctrl+Win+Space</span>
+    <span class="hotkey-badge" id="hotkey-badge">F9</span>
     <button class="pill-btn" id="btn-settings" title="Configurações">⚙</button>
     <button class="pill-btn btn-close" id="btn-close" title="Minimizar">✕</button>
   </div>
@@ -28,6 +28,17 @@
       <div class="field">
         <label>Groq API Key (<a class="link" id="link-groq" href="#">criar grátis</a>)</label>
         <input type="password" id="api-key" placeholder="gsk_...">
+      </div>
+      <div class="field">
+        <label>Atalho (segure para falar)</label>
+        <select id="hotkey">
+          <option value="F9">F9</option>
+          <option value="F8">F8</option>
+          <option value="F10">F10</option>
+          <option value="Ctrl+Shift+Space">Ctrl+Shift+Space</option>
+          <option value="Ctrl+Alt+Space">Ctrl+Alt+Space</option>
+          <option value="Alt+Space">Alt+Space</option>
+        </select>
       </div>
       <div class="field">
         <label>Idioma</label>
