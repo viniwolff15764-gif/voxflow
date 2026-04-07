@@ -15,7 +15,7 @@
         "height": 56,
         "minWidth": 200,
         "minHeight": 56,
-        "resizable": false,
+        "resizable": true,
         "alwaysOnTop": true,
         "decorations": false,
         "transparent": false,

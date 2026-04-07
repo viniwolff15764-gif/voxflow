@@ -1,8 +1,4 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
   height: 100%;
@@ -10,131 +6,154 @@ html, body {
   background: #12121c;
   font-family: 'Segoe UI', system-ui, sans-serif;
   user-select: none;
+  color: #e0e0e0;
 }
 
-/* Pill widget */
-.widget {
+.hidden { display: none !important; }
+
+/* === PILL === */
+.pill {
   display: flex;
   align-items: center;
   height: 56px;
-  width: 100%;
+  padding: 0 12px;
+  gap: 8px;
   background: #12121c;
-  padding: 0 14px;
-  gap: 10px;
-  transition: background 0.3s ease;
   cursor: grab;
 }
+.pill:active { cursor: grabbing; }
 
-.widget:active {
-  cursor: grabbing;
-}
+.pill.recording { background: #131f1a; }
+.pill.processing { background: #131825; }
+.pill.error { background: #1f1315; }
 
-.widget.recording {
-  background: #131f1a;
-}
-
-.widget.processing {
-  background: #131825;
-}
-
-.widget.error {
-  background: #1f1315;
-}
-
-/* Mic indicator */
 .mic-dot {
-  width: 12px;
-  height: 12px;
+  width: 12px; height: 12px;
   border-radius: 50%;
   background: #444;
   flex-shrink: 0;
-  transition: background 0.3s;
 }
-
-.widget.recording .mic-dot {
+.pill.recording .mic-dot {
   background: #4ade80;
-  animation: pulse-mic 1s ease-in-out infinite;
+  animation: pulse 1s ease-in-out infinite;
 }
+.pill.processing .mic-dot { background: #60a5fa; }
+.pill.error .mic-dot { background: #f87171; }
 
-.widget.processing .mic-dot {
-  background: #60a5fa;
-}
-
-.widget.error .mic-dot {
-  background: #f87171;
-}
-
-@keyframes pulse-mic {
+@keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.4); }
 }
 
-/* Text — single line */
-.text-display {
+.pill-text {
   flex: 1;
   font-size: 12px;
   color: #ccc;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 56px;
   min-width: 0;
 }
-
-.text-display .placeholder {
-  color: #555;
-  font-style: italic;
-  font-size: 11px;
-}
-
-.text-display .cursor-blink {
+.placeholder { color: #555; font-style: italic; font-size: 11px; }
+.cursor-blink {
   display: inline-block;
-  width: 2px;
-  height: 12px;
+  width: 2px; height: 12px;
   background: #4ade80;
   margin-left: 2px;
   vertical-align: middle;
   animation: blink 0.8s step-end infinite;
 }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-/* Hotkey badge */
 .hotkey-badge {
-  font-size: 9px;
-  color: #666;
-  background: rgba(255, 255, 255, 0.06);
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 9px; color: #666;
+  background: rgba(255,255,255,0.06);
+  padding: 2px 6px; border-radius: 4px;
   font-family: monospace;
-  white-space: nowrap;
   flex-shrink: 0;
 }
 
-/* Buttons */
-.btn-settings, .btn-close {
-  background: none;
-  border: none;
-  color: #555;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 4px;
+.pill-btn {
+  background: none; border: none;
+  color: #555; cursor: pointer;
+  font-size: 14px; padding: 4px;
   flex-shrink: 0;
-  transition: color 0.2s;
+}
+.pill-btn:hover { color: #ccc; }
+.btn-close { font-size: 12px; color: #444; }
+.btn-close:hover { color: #f87171; }
+
+/* === SETTINGS === */
+.settings {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #12121c;
 }
 
-.btn-settings:hover {
-  color: #ccc;
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  cursor: grab;
+}
+.settings-header:active { cursor: grabbing; }
+
+.settings-body {
+  flex: 1;
+  padding: 12px 14px;
+  overflow-y: auto;
 }
 
-.btn-close {
+.field { margin-bottom: 12px; }
+label { display: block; font-size: 11px; color: #999; margin-bottom: 3px; }
+
+input[type="text"], input[type="password"], select {
+  width: 100%;
+  padding: 7px 9px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  color: #e0e0e0;
   font-size: 12px;
-  color: #444;
+  outline: none;
+}
+input:focus, select:focus { border-color: #4ade80; }
+
+.toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.toggle input[type="checkbox"] { width: 14px; height: 14px; accent-color: #4ade80; }
+
+.section-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+  color: #666; margin: 14px 0 8px; padding-bottom: 3px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.btn-close:hover {
-  color: #f87171;
+.link { color: #60a5fa; font-size: 10px; text-decoration: none; }
+.link:hover { text-decoration: underline; }
+
+.btn-save {
+  width: 100%; padding: 8px;
+  background: #4ade80; color: #111;
+  border: none; border-radius: 5px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; margin-top: 10px;
 }
+.btn-save:hover { background: #22c55e; }
+
+.save-msg {
+  margin-top: 6px; padding: 6px;
+  background: rgba(74,222,128,0.15);
+  color: #4ade80; border-radius: 5px;
+  font-size: 11px; text-align: center;
+  display: none;
+}
+
+.settings-body::-webkit-scrollbar { width: 3px; }
+.settings-body::-webkit-scrollbar-track { background: transparent; }
+.settings-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }

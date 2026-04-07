@@ -7,14 +7,59 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="widget" class="widget idle" data-tauri-drag-region>
+  <!-- PILL MODE (default) -->
+  <div id="pill" class="pill idle">
     <div class="mic-dot"></div>
-    <div class="text-display" id="text-area">
+    <div class="pill-text" id="pill-text">
       <span class="placeholder">Ctrl+Win+Space</span>
     </div>
-    <span class="hotkey-badge" id="hotkey-display">Ctrl+Win+Space</span>
-    <button class="btn-settings" id="btn-settings" title="Configurações">⚙</button>
-    <button class="btn-close" id="btn-close" title="Fechar">✕</button>
+    <span class="hotkey-badge">Ctrl+Win+Space</span>
+    <button class="pill-btn" id="btn-settings" title="Configurações">⚙</button>
+    <button class="pill-btn btn-close" id="btn-close" title="Minimizar">✕</button>
+  </div>
+
+  <!-- SETTINGS MODE (expandido) -->
+  <div id="settings" class="settings hidden">
+    <div class="settings-header">
+      <span>Configurações</span>
+      <button class="pill-btn btn-close" id="btn-back">✕</button>
+    </div>
+    <div class="settings-body">
+      <div class="field">
+        <label>Groq API Key (<a class="link" id="link-groq" href="#">criar grátis</a>)</label>
+        <input type="password" id="api-key" placeholder="gsk_...">
+      </div>
+      <div class="field">
+        <label>Idioma</label>
+        <select id="language">
+          <option value="pt">Português (BR)</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+      </div>
+      <div class="field toggle">
+        <input type="checkbox" id="auto-paste" checked>
+        <label for="auto-paste">Colar automaticamente</label>
+      </div>
+      <div class="section-title">Modo Comando</div>
+      <div class="field toggle">
+        <input type="checkbox" id="command-mode">
+        <label for="command-mode">Ativar comandos por voz</label>
+      </div>
+      <div class="field">
+        <label>Prefixo</label>
+        <input type="text" id="command-prefix" value="comando">
+      </div>
+      <div class="field">
+        <label>Modelo LLM</label>
+        <select id="llm-model">
+          <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+          <option value="gemma2-9b-it">Gemma 2 9B</option>
+        </select>
+      </div>
+      <button class="btn-save" id="btn-save">Salvar</button>
+      <div class="save-msg" id="save-msg"></div>
+    </div>
   </div>
 
   <script src="js/app.js"></script>

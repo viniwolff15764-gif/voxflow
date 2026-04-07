@@ -2,74 +2,151 @@ const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 const { getCurrentWindow } = window.__TAURI__.window;
 
-const widget = document.getElementById('widget');
-const textArea = document.getElementById('text-area');
+const pill = document.getElementById('pill');
+const pillText = document.getElementById('pill-text');
+const settings = document.getElementById('settings');
 
-let history = [];
-const MAX_HISTORY = 10;
+const PILL_SIZE = { w: 280, h: 56 };
+const SETTINGS_SIZE = { w: 320, h: 420 };
 
-// Drag the window by clicking anywhere on the widget
-widget.addEventListener('mousedown', (e) => {
+let isSettings = false;
+
+// === DRAG ===
+pill.addEventListener('mousedown', (e) => {
   if (e.target.tagName === 'BUTTON') return;
-  getCurrentWindow().startDragging();
+  invoke('drag_window');
 });
 
+document.querySelector('.settings-header').addEventListener('mousedown', (e) => {
+  if (e.target.tagName === 'BUTTON') return;
+  invoke('drag_window');
+});
+
+// === SETTINGS TOGGLE ===
+document.getElementById('btn-settings').addEventListener('click', async () => {
+  isSettings = true;
+  pill.classList.add('hidden');
+  settings.classList.remove('hidden');
+  await invoke('resize_window', { width: SETTINGS_SIZE.w, height: SETTINGS_SIZE.h });
+  loadConfig();
+});
+
+document.getElementById('btn-back').addEventListener('click', async () => {
+  isSettings = false;
+  settings.classList.add('hidden');
+  pill.classList.remove('hidden');
+  await invoke('resize_window', { width: PILL_SIZE.w, height: PILL_SIZE.h });
+});
+
+// === CLOSE ===
+document.getElementById('btn-close').addEventListener('click', () => {
+  getCurrentWindow().hide();
+});
+
+// === RECORDING EVENTS ===
 function setState(state) {
-  widget.className = 'widget ' + state;
+  pill.className = 'pill ' + state;
 }
 
 listen('recording-started', () => {
+  if (isSettings) return;
   setState('recording');
-  textArea.innerHTML = '<span class="cursor-blink"></span>';
+  pillText.innerHTML = '<span class="cursor-blink"></span>';
 });
 
 listen('transcription-update', (event) => {
-  textArea.innerHTML = event.payload + '<span class="cursor-blink"></span>';
+  if (isSettings) return;
+  pillText.innerHTML = event.payload + '<span class="cursor-blink"></span>';
 });
 
 listen('recording-stopped', (event) => {
+  if (isSettings) return;
   const text = event.payload;
   if (text) {
-    textArea.textContent = text;
-    history.unshift({ text, time: new Date().toLocaleTimeString() });
-    if (history.length > MAX_HISTORY) history.pop();
+    pillText.textContent = text;
   } else {
-    textArea.innerHTML = '<span class="placeholder">Ctrl+Win+Space</span>';
+    pillText.innerHTML = '<span class="placeholder">Ctrl+Win+Space</span>';
   }
   setState('idle');
 });
 
 listen('command-processing', () => {
+  if (isSettings) return;
   setState('processing');
-  textArea.textContent = 'Processando...';
+  pillText.textContent = 'Processando...';
 });
 
 listen('command-complete', (event) => {
-  textArea.textContent = event.payload;
+  if (isSettings) return;
+  pillText.textContent = event.payload;
   setState('idle');
 });
 
 listen('recording-error', (event) => {
+  if (isSettings) return;
   setState('error');
-  textArea.textContent = event.payload;
+  pillText.textContent = event.payload;
   setTimeout(() => {
     setState('idle');
-    textArea.innerHTML = '<span class="placeholder">Ctrl+Win+Space</span>';
+    pillText.innerHTML = '<span class="placeholder">Ctrl+Win+Space</span>';
   }, 3000);
 });
 
-document.getElementById('btn-close').addEventListener('click', () => {
-  getCurrentWindow().hide();
+// === CONFIG ===
+async function loadConfig() {
+  try {
+    const c = await invoke('get_config');
+    document.getElementById('api-key').value = c.groq_api_key || '';
+    document.getElementById('language').value = c.language || 'pt';
+    document.getElementById('auto-paste').checked = c.auto_paste;
+    document.getElementById('command-mode').checked = c.command_mode;
+    document.getElementById('command-prefix').value = c.command_prefix || 'comando';
+    document.getElementById('llm-model').value = c.llm_model || 'llama-3.3-70b-versatile';
+  } catch (e) {
+    console.error('Config load error:', e);
+  }
+}
+
+document.getElementById('btn-save').addEventListener('click', async () => {
+  const config = {
+    groq_api_key: document.getElementById('api-key').value,
+    hotkey: 'Ctrl+Win+Space',
+    language: document.getElementById('language').value,
+    auto_paste: document.getElementById('auto-paste').checked,
+    command_mode: document.getElementById('command-mode').checked,
+    command_prefix: document.getElementById('command-prefix').value,
+    llm_model: document.getElementById('llm-model').value,
+    opacity: 0.85,
+    autostart: true,
+    window_x: 0.0,
+    window_y: 0.0,
+    window_width: 280.0,
+    window_height: 56.0,
+  };
+  try {
+    await invoke('save_config_cmd', { newConfig: config });
+    const msg = document.getElementById('save-msg');
+    msg.textContent = 'Salvo! Reinicie o VoxFlow para aplicar.';
+    msg.style.display = 'block';
+  } catch (e) {
+    alert('Erro: ' + e);
+  }
 });
 
-document.getElementById('btn-settings').addEventListener('click', async () => {
-  await invoke('open_settings');
+document.getElementById('link-groq').addEventListener('click', (e) => {
+  e.preventDefault();
+  try {
+    window.__TAURI__.shell.open('https://console.groq.com/keys');
+  } catch (_) {
+    window.open('https://console.groq.com/keys');
+  }
 });
 
+// === INIT ===
 async function init() {
-  const config = await invoke('get_config');
-  if (!config.groq_api_key) {
-    textArea.innerHTML = '<span class="placeholder">Clique ⚙ para configurar</span>';
+  const c = await invoke('get_config');
+  if (!c.groq_api_key) {
+    pillText.innerHTML = '<span class="placeholder">Clique ⚙ para configurar</span>';
   }
 }
 

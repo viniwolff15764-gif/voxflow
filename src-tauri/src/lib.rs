@@ -26,24 +26,20 @@ fn save_config_cmd(state: State<AppState>, new_config: AppConfig) -> Result<(), 
 }
 
 #[tauri::command]
-fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
-    use tauri::{WebviewUrl, WebviewWindowBuilder};
-
-    if let Some(window) = app.get_webview_window("settings") {
-        window.set_focus().map_err(|e| e.to_string())?;
-        return Ok(());
+fn drag_window(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        window.start_dragging().map_err(|e| e.to_string())?;
     }
+    Ok(())
+}
 
-    WebviewWindowBuilder::new(&app, "settings", WebviewUrl::App("settings.html".into()))
-        .title("VoxFlow — Configurações")
-        .inner_size(380.0, 520.0)
-        .resizable(false)
-        .transparent(false)
-        .decorations(true)
-        .center()
-        .build()
-        .map_err(|e| e.to_string())?;
-
+#[tauri::command]
+fn resize_window(app: tauri::AppHandle, width: f64, height: f64) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("main") {
+        window
+            .set_size(tauri::LogicalSize::new(width, height))
+            .map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
 
@@ -96,7 +92,12 @@ pub fn run() {
         .manage(AppState {
             config: app_config,
         })
-        .invoke_handler(tauri::generate_handler![get_config, save_config_cmd, open_settings])
+        .invoke_handler(tauri::generate_handler![
+            get_config,
+            save_config_cmd,
+            drag_window,
+            resize_window
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
