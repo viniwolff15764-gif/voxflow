@@ -25,6 +25,26 @@ fn save_config_cmd(state: State<AppState>, new_config: AppConfig) -> Result<(), 
     Ok(())
 }
 
+#[tauri::command]
+fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
+    use tauri::{WebviewUrl, WebviewWindowBuilder};
+
+    if let Some(window) = app.get_webview_window("settings") {
+        window.set_focus().map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+
+    WebviewWindowBuilder::new(&app, "settings", WebviewUrl::App("settings.html".into()))
+        .title("VoxFlow — Configurações")
+        .inner_size(380.0, 520.0)
+        .resizable(false)
+        .center()
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
 pub fn run() {
     let app_config = Arc::new(Mutex::new(config::load_config()));
 
@@ -58,7 +78,7 @@ pub fn run() {
         .manage(AppState {
             config: app_config,
         })
-        .invoke_handler(tauri::generate_handler![get_config, save_config_cmd])
+        .invoke_handler(tauri::generate_handler![get_config, save_config_cmd, open_settings])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

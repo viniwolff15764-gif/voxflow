@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>VoxFlow — Configurações</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #14141e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 20px;
+    }
+    h2 { font-size: 16px; margin-bottom: 16px; color: #fff; }
+    .field { margin-bottom: 14px; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: #4ade80;
+    }
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .toggle input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: #4ade80;
+    }
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #666;
+      margin: 18px 0 10px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .btn-save {
+      width: 100%;
+      padding: 10px;
+      background: #4ade80;
+      color: #111;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: background 0.2s;
+    }
+    .btn-save:hover { background: #22c55e; }
+    .link {
+      color: #60a5fa;
+      font-size: 11px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .link:hover { text-decoration: underline; }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #4ade80;
+    }
+    .range-value { font-size: 11px; color: #999; }
+  </style>
+</head>
+<body>
+  <h2>Configurações</h2>
+
+  <div class="field">
+    <label>Groq API Key (<a class="link" id="link-groq">criar grátis</a>)</label>
+    <input type="password" id="api-key" placeholder="gsk_...">
+  </div>
+
+  <div class="field">
+    <label>Hotkey</label>
+    <select id="hotkey">
+      <option value="CapsLock">Caps Lock</option>
+      <option value="F9">F9</option>
+      <option value="F10">F10</option>
+      <option value="ScrollLock">Scroll Lock</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Idioma de transcrição</label>
+    <select id="language">
+      <option value="pt">Português (BR)</option>
+      <option value="en">English</option>
+      <option value="es">Español</option>
+    </select>
+  </div>
+
+  <div class="field toggle">
+    <input type="checkbox" id="auto-paste" checked>
+    <label for="auto-paste">Colar automaticamente no campo ativo</label>
+  </div>
+
+  <div class="section-title">Modo Comando</div>
+
+  <div class="field toggle">
+    <input type="checkbox" id="command-mode">
+    <label for="command-mode">Ativar modo comando por voz</label>
+  </div>
+
+  <div class="field">
+    <label>Prefixo do comando</label>
+    <input type="text" id="command-prefix" value="comando">
+  </div>
+
+  <div class="field">
+    <label>Modelo LLM</label>
+    <select id="llm-model">
+      <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+      <option value="gemma2-9b-it">Gemma 2 9B</option>
+    </select>
+  </div>
+
+  <div class="section-title">Aparência</div>
+
+  <div class="field">
+    <label>Opacidade quando idle: <span class="range-value" id="opacity-value">80%</span></label>
+    <input type="range" id="opacity" min="30" max="100" value="80">
+  </div>
+
+  <div class="field toggle">
+    <input type="checkbox" id="autostart" checked>
+    <label for="autostart">Iniciar com Windows</label>
+  </div>
+
+  <button class="btn-save" id="btn-save">Salvar</button>
+
+  <script src="js/settings.js"></script>
+</body>
+</html>
