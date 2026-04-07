@@ -1,6 +1,7 @@
 mod audio;
 mod config;
 mod groq;
+mod paste;
 
 use config::AppConfig;
 use std::sync::Mutex;
