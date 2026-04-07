@@ -8,6 +8,7 @@ mod tray;
 use config::AppConfig;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State};
+use std::process;
 
 struct AppState {
     config: Arc<Mutex<AppConfig>>,
@@ -31,6 +32,11 @@ fn drag_window(app: tauri::AppHandle) -> Result<(), String> {
         window.start_dragging().map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+#[tauri::command]
+fn exit_app() {
+    process::exit(0);
 }
 
 #[tauri::command]
@@ -96,7 +102,8 @@ pub fn run() {
             get_config,
             save_config_cmd,
             drag_window,
-            resize_window
+            resize_window,
+            exit_app
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

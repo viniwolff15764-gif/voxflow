@@ -39,9 +39,14 @@ document.getElementById('btn-back').addEventListener('click', async () => {
   await invoke('resize_window', { width: PILL_SIZE.w, height: PILL_SIZE.h });
 });
 
-// === CLOSE ===
-document.getElementById('btn-close').addEventListener('click', () => {
+// === MINIMIZE (hide to tray) ===
+document.getElementById('btn-minimize').addEventListener('click', () => {
   getCurrentWindow().hide();
+});
+
+// === CLOSE (exit app) ===
+document.getElementById('btn-close').addEventListener('click', () => {
+  invoke('exit_app');
 });
 
 // === RECORDING EVENTS ===
@@ -90,7 +95,7 @@ listen('recording-error', (event) => {
   setTimeout(() => {
     setState('idle');
     showPlaceholder();
-  }, 3000);
+  }, 5000);
 });
 
 function showPlaceholder() {
@@ -114,8 +119,14 @@ async function loadConfig() {
 }
 
 document.getElementById('btn-save').addEventListener('click', async () => {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!apiKey) {
+    alert('Cole sua Groq API Key! Crie grátis em console.groq.com/keys');
+    return;
+  }
+
   const config = {
-    groq_api_key: document.getElementById('api-key').value,
+    groq_api_key: apiKey,
     hotkey: document.getElementById('hotkey').value,
     language: document.getElementById('language').value,
     auto_paste: document.getElementById('auto-paste').checked,

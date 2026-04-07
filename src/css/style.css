@@ -80,6 +80,8 @@ html, body {
   flex-shrink: 0;
 }
 .pill-btn:hover { color: #ccc; }
+.btn-minimize { font-size: 14px; color: #444; line-height: 1; }
+.btn-minimize:hover { color: #facc15; }
 .btn-close { font-size: 12px; color: #444; }
 .btn-close:hover { color: #f87171; }
 

@@ -33,6 +33,15 @@ pub fn setup_hotkey(app: &AppHandle, config: Arc<Mutex<AppConfig>>) -> Result<()
 
                 match event.state() {
                     ShortcutState::Pressed => {
+                        // Check API key first
+                        {
+                            let cfg = config.lock().unwrap();
+                            if cfg.groq_api_key.trim().is_empty() {
+                                let _ = handle.emit("recording-error", "Sem API Key! Clique ⚙ e cole sua Groq API Key.".to_string());
+                                return;
+                            }
+                        }
+
                         let mut s = state.lock().unwrap();
                         if s.is_recording {
                             return; // Already recording, ignore repeat
