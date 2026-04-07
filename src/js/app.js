@@ -8,6 +8,12 @@ const textArea = document.getElementById('text-area');
 let history = [];
 const MAX_HISTORY = 10;
 
+// Drag the window by clicking anywhere on the widget
+widget.addEventListener('mousedown', (e) => {
+  if (e.target.tagName === 'BUTTON') return;
+  getCurrentWindow().startDragging();
+});
+
 function setState(state) {
   widget.className = 'widget ' + state;
 }

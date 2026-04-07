@@ -7,49 +7,38 @@
 html, body {
   height: 100%;
   overflow: hidden;
-  background: transparent;
+  background: #12121c;
   font-family: 'Segoe UI', system-ui, sans-serif;
   user-select: none;
 }
 
-/* Pill widget — compact like Wispr Flow */
+/* Pill widget */
 .widget {
   display: flex;
   align-items: center;
   height: 56px;
-  background: rgba(18, 18, 28, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
+  width: 100%;
+  background: #12121c;
   padding: 0 14px;
   gap: 10px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background 0.3s ease;
+  cursor: grab;
 }
 
-.widget.idle {
-  opacity: 0.85;
+.widget:active {
+  cursor: grabbing;
 }
 
 .widget.recording {
-  border-color: #4ade80;
-  opacity: 1;
-  box-shadow: 0 0 12px rgba(74, 222, 128, 0.25);
-  animation: pulse-border 1.5s ease-in-out infinite;
+  background: #131f1a;
 }
 
 .widget.processing {
-  border-color: #60a5fa;
-  opacity: 1;
-  box-shadow: 0 0 12px rgba(96, 165, 250, 0.25);
+  background: #131825;
 }
 
 .widget.error {
-  border-color: #f87171;
-  opacity: 1;
-}
-
-@keyframes pulse-border {
-  0%, 100% { box-shadow: 0 0 8px rgba(74, 222, 128, 0.2); }
-  50% { box-shadow: 0 0 18px rgba(74, 222, 128, 0.45); }
+  background: #1f1315;
 }
 
 /* Mic indicator */
@@ -80,7 +69,7 @@ html, body {
   50% { transform: scale(1.4); }
 }
 
-/* Text — single line, truncated */
+/* Text — single line */
 .text-display {
   flex: 1;
   font-size: 12px;
@@ -125,34 +114,25 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Settings button */
-.btn-settings {
+/* Buttons */
+.btn-settings, .btn-close {
   background: none;
   border: none;
   color: #555;
   cursor: pointer;
   font-size: 14px;
-  padding: 2px;
+  padding: 4px;
   flex-shrink: 0;
   transition: color 0.2s;
-  -webkit-app-region: no-drag;
 }
 
 .btn-settings:hover {
   color: #ccc;
 }
 
-/* Close button */
 .btn-close {
-  background: none;
-  border: none;
-  color: #444;
-  cursor: pointer;
   font-size: 12px;
-  padding: 2px;
-  flex-shrink: 0;
-  transition: color 0.2s;
-  -webkit-app-region: no-drag;
+  color: #444;
 }
 
 .btn-close:hover {
