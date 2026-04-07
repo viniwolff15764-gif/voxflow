@@ -3,6 +3,7 @@ mod config;
 mod groq;
 mod hotkey;
 mod paste;
+mod tray;
 
 use config::AppConfig;
 use std::sync::{Arc, Mutex};
@@ -46,6 +47,10 @@ pub fn run() {
                         None,
                     ))
                     .ok();
+            }
+
+            if let Err(e) = tray::setup_tray(&app.handle()) {
+                eprintln!("Tray setup failed: {}", e);
             }
 
             Ok(())
