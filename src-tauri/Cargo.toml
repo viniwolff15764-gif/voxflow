@@ -1,6 +1,6 @@
 [package]
 name = "voxflow"
-version = "0.5.3"
+version = "0.5.4"
 edition = "2021"
 
 [lib]
@@ -24,3 +24,6 @@ hound = "3.5"
 enigo = { version = "0.2", features = ["serde"] }
 arboard = "3"
 dirs = "5"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+macos-accessibility-client = "0.0.1"

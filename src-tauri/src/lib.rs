@@ -87,7 +87,12 @@ pub fn run() {
         .setup(move |app| {
             // On macOS behave like a floating utility: no Dock icon, lives in the menu bar / tray.
             #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            {
+                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                // Request Accessibility permission (needed to paste into other apps).
+                // Pops the system prompt on first launch if not yet granted.
+                let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+            }
 
             // Place the widget at a guaranteed-visible spot and force it on top.
             if let Some(window) = app.get_webview_window("main") {
