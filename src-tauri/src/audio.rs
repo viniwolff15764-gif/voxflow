@@ -111,7 +111,14 @@ impl AudioRecorder {
         (rms * 3.2).clamp(0.0, 1.0)
     }
 
-    /// Return the ENTIRE recording encoded as WAV, for the accurate final pass.
+    /// Loudest sample in the whole recording (0.0..1.0). Used to detect silence
+    /// (e.g. microphone permission denied → only zeros captured).
+    pub fn overall_peak(&self) -> f32 {
+        let samples = self.samples.lock().unwrap();
+        samples.iter().fold(0.0_f32, |m, &s| m.max(s.abs()))
+    }
+
+    /// Return the ENTIRE recording encoded as a mono WAV, for the accurate final pass.
     pub fn take_all(&self) -> Option<Vec<u8>> {
         let data: Vec<f32> = {
             let samples = self.samples.lock().unwrap();
@@ -120,7 +127,15 @@ impl AudioRecorder {
             }
             samples.clone()
         };
-        Some(encode_wav(&data, self.sample_rate, self.channels))
+        // Downmix to mono (Whisper is happiest with a single channel).
+        let mono = if self.channels >= 2 {
+            data.chunks(self.channels as usize)
+                .map(|c| c.iter().sum::<f32>() / c.len() as f32)
+                .collect::<Vec<f32>>()
+        } else {
+            data
+        };
+        Some(encode_wav(&mono, self.sample_rate, 1))
     }
 }
 

@@ -139,15 +139,28 @@ fn start_recording(state: SharedState, config: SharedConfig, handle: AppHandle) 
 
 fn stop_and_process(state: SharedState, config: SharedConfig, handle: AppHandle) {
     // Stop the stream and grab the full recording synchronously.
-    let full_audio = {
+    let (full_audio, peak) = {
         let mut s = state.lock().unwrap();
         if !s.is_recording {
             return;
         }
         s.is_recording = false;
         s.recorder.stop();
-        s.recorder.take_all()
+        let peak = s.recorder.overall_peak();
+        (s.recorder.take_all(), peak)
     };
+
+    // Near-silence almost always means the microphone permission was denied
+    // (macOS hands back only zeros). Tell the user instead of sending silence
+    // to Whisper, which would hallucinate a short phrase.
+    if peak < 0.012 {
+        let _ = handle.emit(
+            "recording-error",
+            "Não ouvi áudio. Ative o Microfone em Ajustes → Privacidade e Segurança → Microfone."
+                .to_string(),
+        );
+        return;
+    }
 
     let cfg = config.lock().unwrap().clone();
     let _ = handle.emit("processing", ());
