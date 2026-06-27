@@ -8,42 +8,24 @@ const MOD_KEY: Key = Key::Meta;
 #[cfg(not(target_os = "macos"))]
 const MOD_KEY: Key = Key::Control;
 
-/// Copy text to clipboard and simulate the paste shortcut into the active field.
-/// Preserves whatever the user already had on the clipboard.
+/// Put text on the clipboard and simulate the paste shortcut into the active field.
+/// The text is left on the clipboard afterwards, so ⌘V still works as a fallback.
 pub fn paste_text(text: &str) -> Result<(), String> {
-    let previous = get_clipboard().ok();
-
     set_clipboard(text)?;
+    thread::sleep(Duration::from_millis(120));
+    press_combo('v')
+}
 
-    // Small delay to ensure clipboard is ready before pasting.
-    thread::sleep(Duration::from_millis(90));
-
-    press_combo('v')?;
-
-    // Restore the user's previous clipboard after the paste lands.
-    if let Some(prev) = previous {
-        thread::sleep(Duration::from_millis(150));
-        let _ = set_clipboard(&prev);
-    }
-
-    Ok(())
+/// Just put the text on the clipboard (used when we can't auto-paste).
+pub fn copy_only(text: &str) -> Result<(), String> {
+    set_clipboard(text)
 }
 
 /// Read currently selected text by simulating copy and reading the clipboard.
-/// Restores the previous clipboard afterwards.
 pub fn get_selected_text() -> Result<String, String> {
-    let previous = get_clipboard().ok();
-
     press_combo('c')?;
     thread::sleep(Duration::from_millis(120));
-
-    let selected = get_clipboard()?;
-
-    if let Some(prev) = previous {
-        let _ = set_clipboard(&prev);
-    }
-
-    Ok(selected)
+    get_clipboard()
 }
 
 fn press_combo(letter: char) -> Result<(), String> {

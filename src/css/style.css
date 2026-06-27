@@ -141,6 +141,9 @@ html, body {
 .pill.error .status { display: block; color: var(--red); }
 .pill.error .orb { color: #2a0d0d; background: var(--red); }
 
+.pill.copied .status { display: block; color: var(--amber); }
+.pill.copied .orb { color: #2a1d00; background: var(--amber); }
+
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 rgba(94, 234, 212, 0.5); }
   100% { box-shadow: 0 0 0 9px rgba(94, 234, 212, 0); }

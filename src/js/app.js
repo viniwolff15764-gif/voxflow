@@ -10,7 +10,7 @@ const wave = document.getElementById('wave');
 const orb = document.getElementById('orb');
 
 const IDLE = { w: 56, h: 56 };
-const ACTIVE = { w: 300, h: 60 };
+const ACTIVE = { w: 330, h: 60 };
 const SETTINGS = { w: 380, h: 600 };
 const BARS = 20;
 
@@ -87,12 +87,24 @@ listen('recording-error', async (e) => {
   statusEl.textContent = e.payload;
   setTimeout(goIdle, 4500);
 });
+listen('needs-accessibility', (e) => { if (!isSettings) showCopied((e.payload || '').trim()); });
 listen('open-settings', () => { if (!isSettings) openSettings(); });
 
 function showDone(text) {
   setState('done');
   statusEl.textContent = text.length > 42 ? text.slice(0, 41) + '…' : text;
   setTimeout(goIdle, 2600);
+}
+
+// Transcription worked and the text is on the clipboard, but auto-paste needs
+// the Accessibility permission, which isn't granted yet.
+function showCopied(text) {
+  pill.className = 'pill copied';
+  mode = 'idle';
+  const t = text.length > 22 ? text.slice(0, 21) + '…' : text;
+  statusEl.textContent = 'Copiado · ligue Acessibilidade';
+  if (t) statusEl.title = t;
+  setTimeout(goIdle, 4200);
 }
 
 // ---- Config ----

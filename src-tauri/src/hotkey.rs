@@ -16,6 +16,17 @@ struct RecordingState {
 type SharedState = Arc<Mutex<RecordingState>>;
 type SharedConfig = Arc<Mutex<AppConfig>>;
 
+/// Is the Accessibility permission granted? (Required on macOS to paste/type
+/// into other apps.) Always true off macOS.
+#[cfg(target_os = "macos")]
+fn accessibility_ok() -> bool {
+    macos_accessibility_client::accessibility::application_is_trusted()
+}
+#[cfg(not(target_os = "macos"))]
+fn accessibility_ok() -> bool {
+    true
+}
+
 /// Run a closure on the macOS/Windows main thread and wait for its result.
 /// Clipboard (NSPasteboard) and key simulation MUST run on the main thread on
 /// macOS, otherwise the app crashes. Called from background async tasks.
@@ -215,12 +226,18 @@ fn stop_and_process(state: SharedState, config: SharedConfig, handle: AppHandle)
                     let _ = handle.emit("recording-error", e);
                 }
             }
-        } else {
+        } else if cfg.auto_paste && accessibility_ok() {
             // Normal dictation — paste on the main thread (required on macOS).
-            if cfg.auto_paste {
-                let t = full_text.clone();
-                let _ = on_main(&handle, move || paste::paste_text(&t));
-            }
+            let t = full_text.clone();
+            let _ = on_main(&handle, move || paste::paste_text(&t));
+            let _ = handle.emit("recording-stopped", &full_text);
+        } else if cfg.auto_paste {
+            // No Accessibility permission → can't paste. Copy the text so ⌘V works
+            // and tell the user exactly what to enable.
+            let t = full_text.clone();
+            let _ = on_main(&handle, move || paste::copy_only(&t));
+            let _ = handle.emit("needs-accessibility", &full_text);
+        } else {
             let _ = handle.emit("recording-stopped", &full_text);
         }
     });
