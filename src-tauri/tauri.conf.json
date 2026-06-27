@@ -1,6 +1,6 @@
 {
   "productName": "VoxFlow",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "identifier": "com.voxflow.app",
   "build": {
     "frontendDist": "../src"
@@ -44,7 +44,8 @@
     },
     "macOS": {
       "minimumSystemVersion": "11.0",
-      "signingIdentity": "-"
+      "signingIdentity": "-",
+      "entitlements": "Entitlements.plist"
     }
   }
 }
