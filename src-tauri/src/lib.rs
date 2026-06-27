@@ -90,8 +90,13 @@ pub fn run() {
             {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
                 // Request Accessibility permission (needed to paste into other apps).
-                // Pops the system prompt on first launch if not yet granted.
                 let _ = macos_accessibility_client::accessibility::application_is_trusted_with_prompt();
+                // Request Microphone permission via AVFoundation so macOS shows the
+                // prompt and adds VoxFlow to the Microphone privacy list (cpal alone
+                // does NOT trigger this, so the app would record silence forever).
+                tauri::async_runtime::spawn(async {
+                    let _ = tauri_plugin_macos_permissions::request_microphone_permission().await;
+                });
             }
 
             // Place the widget at a guaranteed-visible spot and force it on top.
