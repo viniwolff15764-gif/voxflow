@@ -50,27 +50,27 @@ fn exit_app() {
 }
 
 #[tauri::command]
-fn resize_window(app: tauri::AppHandle, width: f64, height: f64) -> Result<(), String> {
+fn resize_widget(app: tauri::AppHandle, width: f64, height: f64) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("main") {
         window
             .set_size(tauri::LogicalSize::new(width, height))
             .map_err(|e| e.to_string())?;
+        position_widget(&window, width, height);
     }
     Ok(())
 }
 
-/// Move the widget to the bottom-center of the screen, well above the macOS Dock.
-pub(crate) fn position_widget(window: &tauri::WebviewWindow) {
+/// Move a window of the given logical size to the bottom-center of the screen,
+/// well above the macOS Dock.
+pub(crate) fn position_widget(window: &tauri::WebviewWindow, win_w: f64, win_h: f64) {
     if let Ok(Some(monitor)) = window.current_monitor() {
         let size = monitor.size();
         let scale = monitor.scale_factor();
-        let win_w = 340.0;
-        let win_h = 88.0;
         let screen_w = size.width as f64 / scale;
         let screen_h = size.height as f64 / scale;
         let x = ((screen_w - win_w) / 2.0).max(0.0);
-        // Keep ~130px of clearance at the bottom so the Dock never covers it.
-        let y = (screen_h - win_h - 130.0).max(0.0);
+        // Keep ~120px of clearance at the bottom so the Dock never covers it.
+        let y = (screen_h - win_h - 120.0).max(0.0);
         let _ = window.set_position(tauri::PhysicalPosition::new(
             (x * scale) as i32,
             (y * scale) as i32,
@@ -101,10 +101,9 @@ pub fn run() {
 
             // Place the widget at a guaranteed-visible spot and force it on top.
             if let Some(window) = app.get_webview_window("main") {
-                position_widget(&window);
+                position_widget(&window, 56.0, 56.0);
                 let _ = window.set_always_on_top(true);
                 let _ = window.show();
-                let _ = window.set_focus();
             }
 
             // Global hotkey.
@@ -135,7 +134,7 @@ pub fn run() {
             get_config,
             save_config_cmd,
             drag_window,
-            resize_window,
+            resize_widget,
             exit_app
         ])
         .run(tauri::generate_context!())

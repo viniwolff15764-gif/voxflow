@@ -1,9 +1,9 @@
 :root {
   --accent: #5eead4;
   --accent-2: #38bdf8;
-  --bg: rgba(16, 18, 24, 0.78);
+  --glass: rgba(16, 18, 24, 0.74);
   --bg-solid: #14161d;
-  --border: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.13);
   --text: #f3f5f9;
   --text-muted: #9aa3b2;
   --field-bg: rgba(255, 255, 255, 0.05);
@@ -28,7 +28,7 @@ html, body {
 
 .hidden { display: none !important; }
 
-/* ===== PILL (compact, Wispr-style) ===== */
+/* ===== WIDGET ===== */
 .pill {
   position: absolute;
   left: 50%;
@@ -36,65 +36,45 @@ html, body {
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 7px 0 8px;
-  background: var(--bg);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid var(--border);
-  border-radius: 19px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.42);
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  gap: 9px;
+  transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, padding 0.2s ease;
 }
 
-/* Orb / mic */
+/* Orb / dot — always a circle, its own background */
 .orb {
   flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid var(--border);
   border-radius: 50%;
+  background: var(--glass);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.4);
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.07);
-  transition: color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  transition: width 0.2s ease, height 0.2s ease, color 0.25s ease,
+    background 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
 }
-.orb svg { width: 13px; height: 13px; }
+.orb svg { width: 18px; height: 18px; }
+.pill.idle .orb:hover { transform: scale(1.06); color: var(--text); }
 
-/* Center area */
+/* Center (waveform / status) — only when active */
 .center {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
+  display: none;
   align-items: center;
-  justify-content: center;
+  min-width: 0;
   height: 100%;
-  padding: 0 2px;
+  padding-right: 4px;
 }
+.pill.idle .center { display: none; }
 
-.hint {
-  display: none;
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-.status {
-  display: none;
-  font-size: 12px;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-/* Waveform */
 .wave {
   display: none;
   align-items: center;
-  justify-content: center;
   gap: 2.5px;
   height: 20px;
 }
@@ -107,39 +87,42 @@ html, body {
   transform-origin: center;
   will-change: transform;
 }
-
-/* Controls */
-.controls {
-  flex: 0 0 auto;
-  display: flex;
-  gap: 0;
-  opacity: 0.4;
-  transition: opacity 0.2s ease;
+.status {
+  display: none;
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 230px;
 }
-.pill:hover .controls { opacity: 1; }
-.icon-btn {
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+/* ===== ACTIVE BAR (recording / processing / done / error) ===== */
+.pill:not(.idle) {
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  background: var(--glass);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 7px 24px rgba(0, 0, 0, 0.42);
+}
+.pill:not(.idle) .orb {
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  cursor: default;
 }
-.icon-btn svg { width: 13px; height: 13px; }
-.icon-btn:hover { background: rgba(255, 255, 255, 0.12); color: var(--text); }
-
-/* ===== STATES ===== */
-.pill.idle .hint { display: block; }
+.pill:not(.idle) .orb svg { width: 15px; height: 15px; }
+.pill:not(.idle) .center { display: flex; }
 
 .pill.recording {
   border-color: rgba(94, 234, 212, 0.5);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.42),
-    0 0 26px rgba(94, 234, 212, 0.22);
+  box-shadow: 0 7px 24px rgba(0, 0, 0, 0.42), 0 0 26px rgba(94, 234, 212, 0.22);
 }
 .pill.recording .wave { display: flex; }
 .pill.recording .orb {
@@ -148,8 +131,6 @@ html, body {
   box-shadow: 0 0 0 0 rgba(94, 234, 212, 0.55);
   animation: pulse 1.5s ease-out infinite;
 }
-.pill.recording .controls { display: none; }
-
 .pill.processing .wave { display: flex; }
 .pill.processing .bar { background: linear-gradient(180deg, var(--amber), #f59e0b); }
 .pill.processing .orb { color: #2a1d00; background: var(--amber); }
@@ -163,6 +144,9 @@ html, body {
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 rgba(94, 234, 212, 0.5); }
   100% { box-shadow: 0 0 0 9px rgba(94, 234, 212, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill.recording .orb { animation: none; }
 }
 
 /* ===== SETTINGS ===== */
@@ -188,78 +172,47 @@ html, body {
 }
 .settings-body { padding: 13px 15px 16px; overflow-y: auto; }
 
+.icon-btn {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 7px; background: transparent;
+  color: var(--text-muted); cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.icon-btn svg { width: 14px; height: 14px; }
+.icon-btn:hover { background: rgba(255, 255, 255, 0.12); color: var(--text); }
+
 .field { margin-bottom: 12px; }
-.field > label {
-  display: block;
-  font-size: 11.5px;
-  color: var(--text-muted);
-  margin-bottom: 5px;
-}
-.hint-sm {
-  display: block;
-  font-size: 10.5px;
-  color: var(--text-muted);
-  margin-top: 5px;
-  line-height: 1.4;
-}
-.field input[type="text"],
-.field input[type="password"],
-.field select {
-  width: 100%;
-  font-size: 13px;
-  color: var(--text);
-  background: var(--field-bg);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 8px 10px;
-  outline: none;
-  font-family: inherit;
-  appearance: none;
-  -webkit-appearance: none;
+.field > label { display: block; font-size: 11.5px; color: var(--text-muted); margin-bottom: 5px; }
+.hint-sm { display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.4; }
+.field input[type="text"], .field input[type="password"], .field select {
+  width: 100%; font-size: 13px; color: var(--text);
+  background: var(--field-bg); border: 1px solid var(--border);
+  border-radius: 9px; padding: 8px 10px; outline: none;
+  font-family: inherit; appearance: none; -webkit-appearance: none;
   transition: border-color 0.15s ease;
 }
 .field select {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aa3b2' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding-right: 28px;
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
 }
 .field input:focus, .field select:focus { border-color: var(--accent-2); }
-
 .field.toggle { display: flex; align-items: center; gap: 9px; }
 .field.toggle input { width: 16px; height: 16px; accent-color: var(--accent-2); flex: 0 0 auto; }
 .field.toggle label { font-size: 13px; color: var(--text); margin: 0; }
-
 .section-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  margin: 16px 0 10px;
-  padding-top: 13px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); margin: 16px 0 10px; padding-top: 13px;
   border-top: 1px solid var(--border);
 }
 .link { color: var(--accent-2); text-decoration: none; }
 .link:hover { text-decoration: underline; }
-
 .btn-save {
-  width: 100%;
-  margin-top: 6px;
-  padding: 10px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #06231f;
-  background: var(--accent);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: filter 0.15s ease;
+  width: 100%; margin-top: 6px; padding: 10px; font-size: 13.5px; font-weight: 600;
+  color: #06231f; background: var(--accent); border: none; border-radius: 10px;
+  cursor: pointer; transition: filter 0.15s ease;
 }
 .btn-save:hover { filter: brightness(1.07); }
 .save-msg { display: none; margin-top: 10px; font-size: 12px; text-align: center; }
 .save-msg.ok { color: var(--green); }
 .save-msg.error { color: var(--red); }
-
-@media (prefers-reduced-motion: reduce) {
-  .pill.recording .orb { animation: none; }
-}

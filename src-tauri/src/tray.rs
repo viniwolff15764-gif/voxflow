@@ -1,11 +1,22 @@
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager,
+    AppHandle, Emitter, Manager,
 };
+
+fn reveal(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        crate::position_widget(&window, 56.0, 56.0);
+        let _ = window.set_always_on_top(true);
+        let _ = window.show();
+    }
+}
 
 pub fn setup_tray(app: &AppHandle) -> Result<(), String> {
     let show = MenuItemBuilder::with_id("show", "Mostrar VoxFlow")
+        .build(app)
+        .map_err(|e| e.to_string())?;
+    let settings = MenuItemBuilder::with_id("settings", "Configurações")
         .build(app)
         .map_err(|e| e.to_string())?;
     let quit = MenuItemBuilder::with_id("quit", "Sair")
@@ -13,7 +24,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
 
     let menu = MenuBuilder::new(app)
-        .items(&[&show, &quit])
+        .items(&[&show, &settings, &quit])
         .build()
         .map_err(|e| e.to_string())?;
 
@@ -27,17 +38,12 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), String> {
 
     builder
         .on_menu_event(move |app, event| match event.id().as_ref() {
-            "show" => {
-                if let Some(window) = app.get_webview_window("main") {
-                    crate::position_widget(&window);
-                    let _ = window.set_always_on_top(true);
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                }
+            "show" => reveal(app),
+            "settings" => {
+                reveal(app);
+                let _ = app.emit("open-settings", ());
             }
-            "quit" => {
-                app.exit(0);
-            }
+            "quit" => app.exit(0),
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {
@@ -47,12 +53,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), String> {
                 ..
             } = event
             {
-                if let Some(window) = tray.app_handle().get_webview_window("main") {
-                    crate::position_widget(&window);
-                    let _ = window.set_always_on_top(true);
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                }
+                reveal(tray.app_handle());
             }
         })
         .build(app)
