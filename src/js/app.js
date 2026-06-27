@@ -6,20 +6,19 @@ const pill = document.getElementById('pill');
 const pillText = document.getElementById('pill-text');
 const settings = document.getElementById('settings');
 
-const PILL_SIZE = { w: 280, h: 56 };
-const SETTINGS_SIZE = { w: 320, h: 460 };
+const PILL_SIZE = { w: 320, h: 84 };
+const SETTINGS_SIZE = { w: 360, h: 600 };
 
 let isSettings = false;
 let currentHotkey = 'F9';
 
 // === DRAG ===
 pill.addEventListener('mousedown', (e) => {
-  if (e.target.tagName === 'BUTTON') return;
+  if (e.target.closest('button')) return;
   invoke('drag_window');
 });
-
 document.querySelector('.settings-header').addEventListener('mousedown', (e) => {
-  if (e.target.tagName === 'BUTTON') return;
+  if (e.target.closest('button')) return;
   invoke('drag_window');
 });
 
@@ -39,17 +38,15 @@ document.getElementById('btn-back').addEventListener('click', async () => {
   await invoke('resize_window', { width: PILL_SIZE.w, height: PILL_SIZE.h });
 });
 
-// === MINIMIZE (hide to tray) ===
+// === MINIMIZE / CLOSE ===
 document.getElementById('btn-minimize').addEventListener('click', () => {
   getCurrentWindow().hide();
 });
-
-// === CLOSE (exit app) ===
 document.getElementById('btn-close').addEventListener('click', () => {
   invoke('exit_app');
 });
 
-// === RECORDING EVENTS ===
+// === RECORDING STATE ===
 function setState(state) {
   pill.className = 'pill ' + state;
 }
@@ -62,7 +59,8 @@ listen('recording-started', () => {
 
 listen('transcription-update', (event) => {
   if (isSettings) return;
-  pillText.innerHTML = event.payload + '<span class="cursor-blink"></span>';
+  pillText.innerHTML = escapeHtml(event.payload) + '<span class="cursor-blink"></span>';
+  pillText.scrollLeft = pillText.scrollWidth;
 });
 
 listen('recording-stopped', (event) => {
@@ -70,36 +68,42 @@ listen('recording-stopped', (event) => {
   const text = event.payload;
   if (text) {
     pillText.textContent = text;
+    setState('done');
+    setTimeout(() => { setState('idle'); showPlaceholder(); }, 2500);
   } else {
+    setState('idle');
     showPlaceholder();
   }
-  setState('idle');
 });
 
 listen('command-processing', () => {
   if (isSettings) return;
   setState('processing');
-  pillText.textContent = 'Processando...';
+  pillText.textContent = 'Processando…';
 });
 
 listen('command-complete', (event) => {
   if (isSettings) return;
   pillText.textContent = event.payload;
-  setState('idle');
+  setState('done');
+  setTimeout(() => { setState('idle'); showPlaceholder(); }, 2500);
 });
 
 listen('recording-error', (event) => {
   if (isSettings) return;
   setState('error');
   pillText.textContent = event.payload;
-  setTimeout(() => {
-    setState('idle');
-    showPlaceholder();
-  }, 5000);
+  setTimeout(() => { setState('idle'); showPlaceholder(); }, 5000);
 });
 
 function showPlaceholder() {
-  pillText.innerHTML = '<span class="placeholder">' + currentHotkey + ' para ditar</span>';
+  pillText.innerHTML = '<span class="placeholder">' + escapeHtml(currentHotkey) + ' para ditar</span>';
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
 }
 
 // === CONFIG ===
@@ -108,6 +112,8 @@ async function loadConfig() {
     const c = await invoke('get_config');
     document.getElementById('api-key').value = c.groq_api_key || '';
     document.getElementById('hotkey').value = c.hotkey || 'F9';
+    document.getElementById('hold-mode').value = c.hold_to_talk === false ? 'toggle' : 'hold';
+    document.getElementById('whisper-model').value = c.whisper_model || 'whisper-large-v3-turbo';
     document.getElementById('language').value = c.language || 'pt';
     document.getElementById('auto-paste').checked = c.auto_paste;
     document.getElementById('command-mode').checked = c.command_mode;
@@ -120,35 +126,42 @@ async function loadConfig() {
 
 document.getElementById('btn-save').addEventListener('click', async () => {
   const apiKey = document.getElementById('api-key').value.trim();
+  const msg = document.getElementById('save-msg');
   if (!apiKey) {
-    alert('Cole sua Groq API Key! Crie grátis em console.groq.com/keys');
+    msg.className = 'save-msg error';
+    msg.textContent = 'Cole sua Groq API Key (criar grátis em console.groq.com/keys).';
+    msg.style.display = 'block';
     return;
   }
 
   const config = {
     groq_api_key: apiKey,
     hotkey: document.getElementById('hotkey').value,
+    hold_to_talk: document.getElementById('hold-mode').value !== 'toggle',
+    whisper_model: document.getElementById('whisper-model').value,
     language: document.getElementById('language').value,
     auto_paste: document.getElementById('auto-paste').checked,
     command_mode: document.getElementById('command-mode').checked,
-    command_prefix: document.getElementById('command-prefix').value,
+    command_prefix: document.getElementById('command-prefix').value || 'comando',
     llm_model: document.getElementById('llm-model').value,
     opacity: 0.85,
     autostart: true,
     window_x: 0.0,
     window_y: 0.0,
-    window_width: 280.0,
-    window_height: 56.0,
+    window_width: PILL_SIZE.w,
+    window_height: PILL_SIZE.h,
   };
   try {
     await invoke('save_config_cmd', { newConfig: config });
-    const msg = document.getElementById('save-msg');
-    msg.textContent = 'Salvo! Reinicie o VoxFlow para o novo atalho funcionar.';
-    msg.style.display = 'block';
     currentHotkey = config.hotkey;
     document.getElementById('hotkey-badge').textContent = currentHotkey;
+    msg.className = 'save-msg ok';
+    msg.textContent = 'Salvo! Já pode usar.';
+    msg.style.display = 'block';
   } catch (e) {
-    alert('Erro: ' + e);
+    msg.className = 'save-msg error';
+    msg.textContent = 'Erro: ' + e;
+    msg.style.display = 'block';
   }
 });
 
@@ -167,7 +180,6 @@ async function init() {
     const c = await invoke('get_config');
     currentHotkey = c.hotkey || 'F9';
     document.getElementById('hotkey-badge').textContent = currentHotkey;
-
     if (!c.groq_api_key) {
       pillText.innerHTML = '<span class="placeholder">Clique ⚙ e cole sua API Key</span>';
     } else {

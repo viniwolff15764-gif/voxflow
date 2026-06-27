@@ -9,38 +9,63 @@
 <body>
   <!-- PILL MODE (default) -->
   <div id="pill" class="pill idle">
-    <div class="mic-dot"></div>
+    <div class="mic">
+      <span class="mic-dot"></span>
+    </div>
     <div class="pill-text" id="pill-text">
       <span class="placeholder" id="placeholder-text">F9 para ditar</span>
     </div>
     <span class="hotkey-badge" id="hotkey-badge">F9</span>
-    <button class="pill-btn" id="btn-settings" title="Configurações">⚙</button>
-    <button class="pill-btn btn-minimize" id="btn-minimize" title="Minimizar para bandeja">−</button>
-    <button class="pill-btn btn-close" id="btn-close" title="Fechar VoxFlow">✕</button>
+    <div class="pill-actions">
+      <button class="pill-btn" id="btn-settings" title="Configurações">⚙</button>
+      <button class="pill-btn" id="btn-minimize" title="Esconder na bandeja">‒</button>
+      <button class="pill-btn" id="btn-close" title="Fechar VoxFlow">✕</button>
+    </div>
   </div>
 
-  <!-- SETTINGS MODE (expandido) -->
+  <!-- SETTINGS MODE -->
   <div id="settings" class="settings hidden">
     <div class="settings-header">
       <span>Configurações</span>
-      <button class="pill-btn btn-close" id="btn-back">✕</button>
+      <button class="pill-btn" id="btn-back" title="Voltar">✕</button>
     </div>
     <div class="settings-body">
       <div class="field">
-        <label>Groq API Key (<a class="link" id="link-groq" href="#">criar grátis</a>)</label>
+        <label>Groq API Key <a class="link" id="link-groq" href="#">criar grátis</a></label>
         <input type="password" id="api-key" placeholder="gsk_...">
       </div>
+
       <div class="field">
-        <label>Atalho (segure para falar)</label>
+        <label>Atalho</label>
         <select id="hotkey">
           <option value="F9">F9</option>
           <option value="F8">F8</option>
+          <option value="F7">F7</option>
           <option value="F10">F10</option>
-          <option value="Ctrl+Shift+Space">Ctrl+Shift+Space</option>
-          <option value="Ctrl+Alt+Space">Ctrl+Alt+Space</option>
-          <option value="Alt+Space">Alt+Space</option>
+          <option value="Ctrl+Shift+Space">Ctrl/⌃ + Shift + Espaço</option>
+          <option value="Ctrl+Alt+Space">Ctrl/⌃ + Alt/⌥ + Espaço</option>
+          <option value="Alt+Space">Alt/⌥ + Espaço</option>
+          <option value="Cmd+Shift+Space">⌘ + Shift + Espaço (Mac)</option>
+          <option value="Cmd+Shift+V">⌘ + Shift + V (Mac)</option>
         </select>
       </div>
+
+      <div class="field">
+        <label>Modo do atalho</label>
+        <select id="hold-mode">
+          <option value="hold">Segurar para falar</option>
+          <option value="toggle">Apertar p/ começar e parar</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Qualidade da transcrição</label>
+        <select id="whisper-model">
+          <option value="whisper-large-v3-turbo">Rápida (turbo)</option>
+          <option value="whisper-large-v3">Máxima precisão</option>
+        </select>
+      </div>
+
       <div class="field">
         <label>Idioma</label>
         <select id="language">
@@ -49,26 +74,29 @@
           <option value="es">Español</option>
         </select>
       </div>
+
       <div class="field toggle">
         <input type="checkbox" id="auto-paste" checked>
-        <label for="auto-paste">Colar automaticamente</label>
+        <label for="auto-paste">Colar o texto automaticamente</label>
       </div>
-      <div class="section-title">Modo Comando</div>
+
+      <div class="section-title">Modo comando</div>
       <div class="field toggle">
         <input type="checkbox" id="command-mode">
-        <label for="command-mode">Ativar comandos por voz</label>
+        <label for="command-mode">Reescrever texto selecionado por voz</label>
       </div>
       <div class="field">
-        <label>Prefixo</label>
+        <label>Palavra-gatilho</label>
         <input type="text" id="command-prefix" value="comando">
       </div>
       <div class="field">
-        <label>Modelo LLM</label>
+        <label>Modelo de IA (comandos)</label>
         <select id="llm-model">
           <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
           <option value="gemma2-9b-it">Gemma 2 9B</option>
         </select>
       </div>
+
       <button class="btn-save" id="btn-save">Salvar</button>
       <div class="save-msg" id="save-msg"></div>
     </div>

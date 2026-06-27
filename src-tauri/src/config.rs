@@ -3,6 +3,7 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)] // missing fields (older config.json) fall back to Default — backward compatible
 pub struct AppConfig {
     pub groq_api_key: String,
     pub hotkey: String,
@@ -11,6 +12,10 @@ pub struct AppConfig {
     pub command_mode: bool,
     pub command_prefix: String,
     pub llm_model: String,
+    /// Whisper model used for transcription. "turbo" is fast/cheap, "large-v3" is most accurate.
+    pub whisper_model: String,
+    /// true = hold the hotkey to talk (release to send). false = press once to start, press again to stop.
+    pub hold_to_talk: bool,
     pub opacity: f64,
     pub autostart: bool,
     pub window_x: f64,
@@ -29,12 +34,14 @@ impl Default for AppConfig {
             command_mode: false,
             command_prefix: "comando".to_string(),
             llm_model: "llama-3.3-70b-versatile".to_string(),
-            opacity: 0.8,
+            whisper_model: "whisper-large-v3-turbo".to_string(),
+            hold_to_talk: true,
+            opacity: 0.85,
             autostart: true,
             window_x: 100.0,
             window_y: 100.0,
-            window_width: 350.0,
-            window_height: 200.0,
+            window_width: 320.0,
+            window_height: 84.0,
         }
     }
 }

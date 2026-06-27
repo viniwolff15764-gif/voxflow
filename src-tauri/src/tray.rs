@@ -17,9 +17,15 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
 
-    TrayIconBuilder::new()
+    let mut builder = TrayIconBuilder::new()
         .menu(&menu)
-        .tooltip("VoxFlow — Ditado por voz")
+        .tooltip("VoxFlow — Ditado por voz");
+
+    if let Some(icon) = app.default_window_icon() {
+        builder = builder.icon(icon.clone());
+    }
+
+    builder
         .on_menu_event(move |app, event| match event.id().as_ref() {
             "show" => {
                 if let Some(window) = app.get_webview_window("main") {

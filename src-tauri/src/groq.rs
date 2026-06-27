@@ -34,7 +34,12 @@ struct ChatResponse {
     choices: Vec<ChatChoice>,
 }
 
-pub async fn transcribe(api_key: &str, audio_data: Vec<u8>, language: &str) -> Result<String, String> {
+pub async fn transcribe(
+    api_key: &str,
+    audio_data: Vec<u8>,
+    language: &str,
+    model: &str,
+) -> Result<String, String> {
     let client = reqwest::Client::new();
 
     let audio_part = multipart::Part::bytes(audio_data)
@@ -43,9 +48,10 @@ pub async fn transcribe(api_key: &str, audio_data: Vec<u8>, language: &str) -> R
         .map_err(|e| e.to_string())?;
 
     let form = multipart::Form::new()
-        .text("model", "whisper-large-v3")
+        .text("model", model.to_string())
         .text("language", language.to_string())
         .text("response_format", "json")
+        .text("temperature", "0")
         .part("file", audio_part);
 
     let response = client
