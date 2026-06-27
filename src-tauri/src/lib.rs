@@ -70,13 +70,16 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-            // Position the widget near the bottom-right corner.
+            // Position the widget at the bottom-center of the screen (Wispr-style).
             if let Some(window) = app.get_webview_window("main") {
                 if let Ok(Some(monitor)) = window.current_monitor() {
                     let size = monitor.size();
                     let scale = monitor.scale_factor();
-                    let x = (size.width as f64 / scale) - 340.0;
-                    let y = (size.height as f64 / scale) - 110.0;
+                    let win_w = 420.0;
+                    let screen_w = size.width as f64 / scale;
+                    let screen_h = size.height as f64 / scale;
+                    let x = (screen_w - win_w) / 2.0;
+                    let y = screen_h - 130.0;
                     let _ = window.set_position(tauri::PhysicalPosition::new(
                         (x * scale) as i32,
                         (y * scale) as i32,

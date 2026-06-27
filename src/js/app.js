@@ -1,18 +1,79 @@
-const { invoke } = window.__TAURI__.core;
-const { listen } = window.__TAURI__.event;
-const { getCurrentWindow } = window.__TAURI__.window;
+// ---- Tauri bridge (with a no-op fallback so the page can be previewed in a plain browser) ----
+const TAURI = window.__TAURI__ || null;
+const invoke = TAURI ? TAURI.core.invoke : async () => ({});
+const listen = TAURI ? TAURI.event.listen : (_e, _cb) => {};
+const getCurrentWindow = TAURI ? TAURI.window.getCurrentWindow : () => ({ hide() {} });
 
 const pill = document.getElementById('pill');
-const pillText = document.getElementById('pill-text');
 const settings = document.getElementById('settings');
+const hint = document.getElementById('hint');
+const statusEl = document.getElementById('status');
+const wave = document.getElementById('wave');
 
-const PILL_SIZE = { w: 320, h: 84 };
-const SETTINGS_SIZE = { w: 360, h: 600 };
+const PILL_SIZE = { w: 420, h: 120 };
+const SETTINGS_SIZE = { w: 380, h: 640 };
+const BARS = 28;
 
 let isSettings = false;
 let currentHotkey = 'F9';
 
-// === DRAG ===
+// ---- Build waveform bars ----
+const bars = [];
+for (let i = 0; i < BARS; i++) {
+  const b = document.createElement('span');
+  b.className = 'bar';
+  wave.appendChild(b);
+  // Bell-shaped weight: taller in the middle.
+  const x = (i - (BARS - 1) / 2) / (BARS / 2);
+  bars.push({
+    el: b,
+    weight: 0.35 + 0.65 * Math.exp(-x * x * 2.2),
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.06 + Math.random() * 0.05,
+  });
+}
+
+let targetLevel = 0; // 0..1 from mic
+let dispLevel = 0; // smoothed
+let mode = 'idle'; // idle | recording | processing
+let t = 0;
+
+function animate() {
+  t += 1;
+  dispLevel += (targetLevel - dispLevel) * 0.28;
+
+  for (let i = 0; i < BARS; i++) {
+    const b = bars[i];
+    let h;
+    if (mode === 'recording') {
+      const wobble = 0.55 + 0.45 * Math.sin(t * b.speed + b.phase);
+      h = 0.12 + dispLevel * b.weight * wobble * 1.7;
+    } else if (mode === 'processing') {
+      // Traveling sine wave (loading look).
+      h = 0.18 + 0.5 * (0.5 + 0.5 * Math.sin(t * 0.12 - i * 0.5));
+    } else {
+      h = 0.1;
+    }
+    b.el.style.transform = `scaleY(${Math.max(0.08, Math.min(1, h)).toFixed(3)})`;
+  }
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+// ---- State ----
+function setState(s) {
+  pill.className = 'pill ' + s;
+  if (s === 'recording') mode = 'recording';
+  else if (s === 'processing') mode = 'processing';
+  else mode = 'idle';
+}
+
+function showPlaceholder() {
+  hint.textContent = currentHotkey + ' para ditar';
+  statusEl.textContent = '';
+}
+
+// ---- Drag ----
 pill.addEventListener('mousedown', (e) => {
   if (e.target.closest('button')) return;
   invoke('drag_window');
@@ -22,7 +83,7 @@ document.querySelector('.settings-header').addEventListener('mousedown', (e) => 
   invoke('drag_window');
 });
 
-// === SETTINGS TOGGLE ===
+// ---- Buttons ----
 document.getElementById('btn-settings').addEventListener('click', async () => {
   isSettings = true;
   pill.classList.add('hidden');
@@ -30,83 +91,38 @@ document.getElementById('btn-settings').addEventListener('click', async () => {
   await invoke('resize_window', { width: SETTINGS_SIZE.w, height: SETTINGS_SIZE.h });
   loadConfig();
 });
-
 document.getElementById('btn-back').addEventListener('click', async () => {
   isSettings = false;
   settings.classList.add('hidden');
   pill.classList.remove('hidden');
   await invoke('resize_window', { width: PILL_SIZE.w, height: PILL_SIZE.h });
 });
+document.getElementById('btn-minimize').addEventListener('click', () => getCurrentWindow().hide());
+document.getElementById('btn-close').addEventListener('click', () => invoke('exit_app'));
 
-// === MINIMIZE / CLOSE ===
-document.getElementById('btn-minimize').addEventListener('click', () => {
-  getCurrentWindow().hide();
-});
-document.getElementById('btn-close').addEventListener('click', () => {
-  invoke('exit_app');
-});
+// ---- Events from backend ----
+listen('recording-started', () => { if (!isSettings) { setState('recording'); statusEl.textContent = ''; } });
+listen('audio-level', (e) => { targetLevel = typeof e.payload === 'number' ? e.payload : 0; });
+listen('processing', () => { if (!isSettings) { setState('processing'); targetLevel = 0; } });
+listen('command-processing', () => { if (!isSettings) { setState('processing'); } });
 
-// === RECORDING STATE ===
-function setState(state) {
-  pill.className = 'pill ' + state;
-}
+listen('recording-stopped', () => { if (!isSettings) { flashDone(); } });
+listen('command-complete', () => { if (!isSettings) { flashDone(); } });
 
-listen('recording-started', () => {
-  if (isSettings) return;
-  setState('recording');
-  pillText.innerHTML = '<span class="cursor-blink"></span>';
-});
-
-listen('transcription-update', (event) => {
-  if (isSettings) return;
-  pillText.innerHTML = escapeHtml(event.payload) + '<span class="cursor-blink"></span>';
-  pillText.scrollLeft = pillText.scrollWidth;
-});
-
-listen('recording-stopped', (event) => {
-  if (isSettings) return;
-  const text = event.payload;
-  if (text) {
-    pillText.textContent = text;
-    setState('done');
-    setTimeout(() => { setState('idle'); showPlaceholder(); }, 2500);
-  } else {
-    setState('idle');
-    showPlaceholder();
-  }
-});
-
-listen('command-processing', () => {
-  if (isSettings) return;
-  setState('processing');
-  pillText.textContent = 'Processando…';
-});
-
-listen('command-complete', (event) => {
-  if (isSettings) return;
-  pillText.textContent = event.payload;
-  setState('done');
-  setTimeout(() => { setState('idle'); showPlaceholder(); }, 2500);
-});
-
-listen('recording-error', (event) => {
+listen('recording-error', (e) => {
   if (isSettings) return;
   setState('error');
-  pillText.textContent = event.payload;
-  setTimeout(() => { setState('idle'); showPlaceholder(); }, 5000);
+  statusEl.textContent = e.payload;
+  setTimeout(() => { setState('idle'); showPlaceholder(); }, 4500);
 });
 
-function showPlaceholder() {
-  pillText.innerHTML = '<span class="placeholder">' + escapeHtml(currentHotkey) + ' para ditar</span>';
+function flashDone() {
+  setState('done');
+  hint.textContent = 'Pronto ✓';
+  setTimeout(() => { setState('idle'); showPlaceholder(); }, 1100);
 }
 
-function escapeHtml(s) {
-  const d = document.createElement('div');
-  d.textContent = s == null ? '' : String(s);
-  return d.innerHTML;
-}
-
-// === CONFIG ===
+// ---- Config ----
 async function loadConfig() {
   try {
     const c = await invoke('get_config');
@@ -119,9 +135,7 @@ async function loadConfig() {
     document.getElementById('command-mode').checked = c.command_mode;
     document.getElementById('command-prefix').value = c.command_prefix || 'comando';
     document.getElementById('llm-model').value = c.llm_model || 'llama-3.3-70b-versatile';
-  } catch (e) {
-    console.error('Config load error:', e);
-  }
+  } catch (e) { console.error('Config load error:', e); }
 }
 
 document.getElementById('btn-save').addEventListener('click', async () => {
@@ -133,7 +147,6 @@ document.getElementById('btn-save').addEventListener('click', async () => {
     msg.style.display = 'block';
     return;
   }
-
   const config = {
     groq_api_key: apiKey,
     hotkey: document.getElementById('hotkey').value,
@@ -144,17 +157,12 @@ document.getElementById('btn-save').addEventListener('click', async () => {
     command_mode: document.getElementById('command-mode').checked,
     command_prefix: document.getElementById('command-prefix').value || 'comando',
     llm_model: document.getElementById('llm-model').value,
-    opacity: 0.85,
-    autostart: true,
-    window_x: 0.0,
-    window_y: 0.0,
-    window_width: PILL_SIZE.w,
-    window_height: PILL_SIZE.h,
+    opacity: 0.9, autostart: true,
+    window_x: 0, window_y: 0, window_width: PILL_SIZE.w, window_height: PILL_SIZE.h,
   };
   try {
     await invoke('save_config_cmd', { newConfig: config });
     currentHotkey = config.hotkey;
-    document.getElementById('hotkey-badge').textContent = currentHotkey;
     msg.className = 'save-msg ok';
     msg.textContent = 'Salvo! Já pode usar.';
     msg.style.display = 'block';
@@ -167,27 +175,27 @@ document.getElementById('btn-save').addEventListener('click', async () => {
 
 document.getElementById('link-groq').addEventListener('click', (e) => {
   e.preventDefault();
-  try {
-    window.__TAURI__.shell.open('https://console.groq.com/keys');
-  } catch (_) {
-    window.open('https://console.groq.com/keys');
-  }
+  try { window.__TAURI__.shell.open('https://console.groq.com/keys'); }
+  catch (_) { window.open('https://console.groq.com/keys'); }
 });
 
-// === INIT ===
+// ---- Init ----
 async function init() {
   try {
     const c = await invoke('get_config');
     currentHotkey = c.hotkey || 'F9';
-    document.getElementById('hotkey-badge').textContent = currentHotkey;
-    if (!c.groq_api_key) {
-      pillText.innerHTML = '<span class="placeholder">Clique ⚙ e cole sua API Key</span>';
-    } else {
-      showPlaceholder();
-    }
-  } catch (e) {
-    console.error('Init error:', e);
-  }
+    if (!c.groq_api_key) hint.textContent = 'Clique ⚙ e cole sua API Key';
+    else showPlaceholder();
+  } catch (e) { showPlaceholder(); }
 }
-
 init();
+
+// ---- Preview helpers (only used when opened in a plain browser) ----
+if (!TAURI) {
+  window.__demo = {
+    rec() { setState('recording'); let l = 0; window.__demoTimer = setInterval(() => { l = 0.3 + Math.random() * 0.7; targetLevel = l; }, 120); },
+    proc() { clearInterval(window.__demoTimer); setState('processing'); },
+    idle() { clearInterval(window.__demoTimer); targetLevel = 0; setState('idle'); showPlaceholder(); },
+    error(m) { setState('error'); statusEl.textContent = m || 'Erro de exemplo'; },
+  };
+}

@@ -7,17 +7,15 @@ pub struct AudioRecorder {
     /// Full recording buffer. Never drained while recording, so the final
     /// transcription can re-process the whole audio in one shot (better accuracy).
     samples: Arc<Mutex<Vec<f32>>>,
-    /// How many samples have already been handed out as live-preview chunks.
-    preview_pos: usize,
     stream: Option<cpal::Stream>,
     sample_rate: u32,
     channels: u16,
 }
 
 // Safety: AudioRecorder lives behind a Mutex and the cpal::Stream is only ever
-// created, played and dropped on the same (global-shortcut handler) thread.
-// cpal::Stream is !Send on macOS/Windows, so we assert Send to share the
-// recorder across the async preview task (which only touches `samples`).
+// created and dropped on the same thread. cpal::Stream is !Send on macOS/Windows,
+// so we assert Send to share the recorder with the async level loop (which only
+// reads `samples`, never the stream).
 unsafe impl Send for AudioRecorder {}
 
 impl AudioRecorder {
@@ -25,7 +23,6 @@ impl AudioRecorder {
         let (sample_rate, channels) = default_input_format()?;
         Ok(Self {
             samples: Arc::new(Mutex::new(Vec::new())),
-            preview_pos: 0,
             stream: None,
             sample_rate,
             channels,
@@ -46,9 +43,7 @@ impl AudioRecorder {
         self.channels = config.channels();
         let sample_format = config.sample_format();
 
-        // Reset buffers.
         self.samples.lock().unwrap().clear();
-        self.preview_pos = 0;
 
         let samples = Arc::clone(&self.samples);
         let err_fn = |err| eprintln!("Audio stream error: {}", err);
@@ -101,17 +96,19 @@ impl AudioRecorder {
         self.stream = None; // Drop stops the stream.
     }
 
-    /// Return the samples recorded since the last preview call, encoded as WAV.
-    /// Used only for the live preview while the user is still talking.
-    pub fn take_preview_chunk(&mut self) -> Option<Vec<u8>> {
+    /// Current input loudness (0.0..1.0), from the most recent samples.
+    /// Used to drive the live waveform animation.
+    pub fn peak_level(&self) -> f32 {
         let samples = self.samples.lock().unwrap();
-        if samples.len() <= self.preview_pos {
-            return None;
+        if samples.is_empty() {
+            return 0.0;
         }
-        let chunk: Vec<f32> = samples[self.preview_pos..].to_vec();
-        self.preview_pos = samples.len();
-        drop(samples);
-        Some(encode_wav(&chunk, self.sample_rate, self.channels))
+        let window = 2048.min(samples.len());
+        let slice = &samples[samples.len() - window..];
+        let sum_sq: f32 = slice.iter().map(|s| s * s).sum();
+        let rms = (sum_sq / window as f32).sqrt();
+        // Speech RMS is small; scale up and clamp for a lively meter.
+        (rms * 3.2).clamp(0.0, 1.0)
     }
 
     /// Return the ENTIRE recording encoded as WAV, for the accurate final pass.

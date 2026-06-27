@@ -7,49 +7,68 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- PILL MODE (default) -->
+  <!-- PILL -->
   <div id="pill" class="pill idle">
-    <div class="mic">
-      <span class="mic-dot"></span>
+    <div class="orb">
+      <svg class="ic-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+        <line x1="12" y1="19" x2="12" y2="22"/>
+      </svg>
     </div>
-    <div class="pill-text" id="pill-text">
-      <span class="placeholder" id="placeholder-text">F9 para ditar</span>
+
+    <div class="center">
+      <span class="hint" id="hint">F9 para ditar</span>
+      <div class="wave" id="wave"></div>
+      <span class="status" id="status"></span>
     </div>
-    <span class="hotkey-badge" id="hotkey-badge">F9</span>
-    <div class="pill-actions">
-      <button class="pill-btn" id="btn-settings" title="Configurações">⚙</button>
-      <button class="pill-btn" id="btn-minimize" title="Esconder na bandeja">‒</button>
-      <button class="pill-btn" id="btn-close" title="Fechar VoxFlow">✕</button>
+
+    <div class="controls" id="controls">
+      <button class="icon-btn" id="btn-settings" title="Configurações">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btn-minimize" title="Esconder na bandeja">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-close" title="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
     </div>
   </div>
 
-  <!-- SETTINGS MODE -->
+  <!-- SETTINGS -->
   <div id="settings" class="settings hidden">
     <div class="settings-header">
       <span>Configurações</span>
-      <button class="pill-btn" id="btn-back" title="Voltar">✕</button>
+      <button class="icon-btn" id="btn-back" title="Voltar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
     </div>
     <div class="settings-body">
       <div class="field">
         <label>Groq API Key <a class="link" id="link-groq" href="#">criar grátis</a></label>
         <input type="password" id="api-key" placeholder="gsk_...">
       </div>
-
       <div class="field">
         <label>Atalho</label>
         <select id="hotkey">
           <option value="F9">F9</option>
           <option value="F8">F8</option>
           <option value="F7">F7</option>
+          <option value="F6">F6</option>
           <option value="F10">F10</option>
-          <option value="Ctrl+Shift+Space">Ctrl/⌃ + Shift + Espaço</option>
-          <option value="Ctrl+Alt+Space">Ctrl/⌃ + Alt/⌥ + Espaço</option>
-          <option value="Alt+Space">Alt/⌥ + Espaço</option>
-          <option value="Cmd+Shift+Space">⌘ + Shift + Espaço (Mac)</option>
-          <option value="Cmd+Shift+V">⌘ + Shift + V (Mac)</option>
+          <option value="Ctrl+Alt+Space">⌃ Control + ⌥ Option + Espaço</option>
+          <option value="Ctrl+Shift+Space">⌃ Control + ⇧ Shift + Espaço</option>
+          <option value="Ctrl+Shift+D">⌃ Control + ⇧ Shift + D</option>
+          <option value="Cmd+Shift+Space">⌘ Command + ⇧ Shift + Espaço</option>
+          <option value="Cmd+Shift+D">⌘ Command + ⇧ Shift + D</option>
+          <option value="Cmd+Ctrl+Space">⌘ Command + ⌃ Control + Espaço</option>
         </select>
+        <span class="hint-sm">No Mac, teclas F podem precisar do Fn. Combinações com ⌘/⌃ são mais confiáveis.</span>
       </div>
-
       <div class="field">
         <label>Modo do atalho</label>
         <select id="hold-mode">
@@ -57,7 +76,6 @@
           <option value="toggle">Apertar p/ começar e parar</option>
         </select>
       </div>
-
       <div class="field">
         <label>Qualidade da transcrição</label>
         <select id="whisper-model">
@@ -65,7 +83,6 @@
           <option value="whisper-large-v3">Máxima precisão</option>
         </select>
       </div>
-
       <div class="field">
         <label>Idioma</label>
         <select id="language">
@@ -74,12 +91,10 @@
           <option value="es">Español</option>
         </select>
       </div>
-
       <div class="field toggle">
         <input type="checkbox" id="auto-paste" checked>
         <label for="auto-paste">Colar o texto automaticamente</label>
       </div>
-
       <div class="section-title">Modo comando</div>
       <div class="field toggle">
         <input type="checkbox" id="command-mode">
@@ -96,7 +111,6 @@
           <option value="gemma2-9b-it">Gemma 2 9B</option>
         </select>
       </div>
-
       <button class="btn-save" id="btn-save">Salvar</button>
       <div class="save-msg" id="save-msg"></div>
     </div>
