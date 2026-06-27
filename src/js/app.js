@@ -10,9 +10,9 @@ const hint = document.getElementById('hint');
 const statusEl = document.getElementById('status');
 const wave = document.getElementById('wave');
 
-const PILL_SIZE = { w: 420, h: 120 };
+const PILL_SIZE = { w: 340, h: 88 };
 const SETTINGS_SIZE = { w: 380, h: 640 };
-const BARS = 28;
+const BARS = 22;
 
 let isSettings = false;
 let currentHotkey = 'F9';
@@ -106,8 +106,13 @@ listen('audio-level', (e) => { targetLevel = typeof e.payload === 'number' ? e.p
 listen('processing', () => { if (!isSettings) { setState('processing'); targetLevel = 0; } });
 listen('command-processing', () => { if (!isSettings) { setState('processing'); } });
 
-listen('recording-stopped', () => { if (!isSettings) { flashDone(); } });
-listen('command-complete', () => { if (!isSettings) { flashDone(); } });
+listen('recording-stopped', (e) => {
+  if (isSettings) return;
+  const txt = (e.payload || '').trim();
+  if (txt) showDone(txt);
+  else { setState('idle'); showPlaceholder(); }
+});
+listen('command-complete', (e) => { if (!isSettings) showDone((e.payload || '').trim() || '✓'); });
 
 listen('recording-error', (e) => {
   if (isSettings) return;
@@ -116,10 +121,11 @@ listen('recording-error', (e) => {
   setTimeout(() => { setState('idle'); showPlaceholder(); }, 4500);
 });
 
-function flashDone() {
+// Show the transcribed text briefly (confirms it worked, even if pasting didn't).
+function showDone(text) {
   setState('done');
-  hint.textContent = 'Pronto ✓';
-  setTimeout(() => { setState('idle'); showPlaceholder(); }, 1100);
+  statusEl.textContent = text.length > 42 ? text.slice(0, 41) + '…' : text;
+  setTimeout(() => { setState('idle'); showPlaceholder(); }, 2600);
 }
 
 // ---- Config ----

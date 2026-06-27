@@ -64,8 +64,8 @@ pub(crate) fn position_widget(window: &tauri::WebviewWindow) {
     if let Ok(Some(monitor)) = window.current_monitor() {
         let size = monitor.size();
         let scale = monitor.scale_factor();
-        let win_w = 420.0;
-        let win_h = 120.0;
+        let win_w = 340.0;
+        let win_h = 88.0;
         let screen_w = size.width as f64 / scale;
         let screen_h = size.height as f64 / scale;
         let x = ((screen_w - win_w) / 2.0).max(0.0);
