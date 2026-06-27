@@ -59,6 +59,25 @@ fn resize_window(app: tauri::AppHandle, width: f64, height: f64) -> Result<(), S
     Ok(())
 }
 
+/// Move the widget to the bottom-center of the screen, well above the macOS Dock.
+pub(crate) fn position_widget(window: &tauri::WebviewWindow) {
+    if let Ok(Some(monitor)) = window.current_monitor() {
+        let size = monitor.size();
+        let scale = monitor.scale_factor();
+        let win_w = 420.0;
+        let win_h = 120.0;
+        let screen_w = size.width as f64 / scale;
+        let screen_h = size.height as f64 / scale;
+        let x = ((screen_w - win_w) / 2.0).max(0.0);
+        // Keep ~130px of clearance at the bottom so the Dock never covers it.
+        let y = (screen_h - win_h - 130.0).max(0.0);
+        let _ = window.set_position(tauri::PhysicalPosition::new(
+            (x * scale) as i32,
+            (y * scale) as i32,
+        ));
+    }
+}
+
 pub fn run() {
     let app_config = Arc::new(Mutex::new(config::load_config()));
     let config_for_setup = Arc::clone(&app_config);
@@ -70,21 +89,12 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-            // Position the widget at the bottom-center of the screen (Wispr-style).
+            // Place the widget at a guaranteed-visible spot and force it on top.
             if let Some(window) = app.get_webview_window("main") {
-                if let Ok(Some(monitor)) = window.current_monitor() {
-                    let size = monitor.size();
-                    let scale = monitor.scale_factor();
-                    let win_w = 420.0;
-                    let screen_w = size.width as f64 / scale;
-                    let screen_h = size.height as f64 / scale;
-                    let x = (screen_w - win_w) / 2.0;
-                    let y = screen_h - 130.0;
-                    let _ = window.set_position(tauri::PhysicalPosition::new(
-                        (x * scale) as i32,
-                        (y * scale) as i32,
-                    ));
-                }
+                position_widget(&window);
+                let _ = window.set_always_on_top(true);
+                let _ = window.show();
+                let _ = window.set_focus();
             }
 
             // Global hotkey.

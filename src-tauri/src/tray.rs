@@ -29,6 +29,8 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), String> {
         .on_menu_event(move |app, event| match event.id().as_ref() {
             "show" => {
                 if let Some(window) = app.get_webview_window("main") {
+                    crate::position_widget(&window);
+                    let _ = window.set_always_on_top(true);
                     let _ = window.show();
                     let _ = window.set_focus();
                 }
@@ -46,6 +48,8 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), String> {
             } = event
             {
                 if let Some(window) = tray.app_handle().get_webview_window("main") {
+                    crate::position_widget(&window);
+                    let _ = window.set_always_on_top(true);
                     let _ = window.show();
                     let _ = window.set_focus();
                 }

@@ -1,6 +1,6 @@
 {
   "productName": "VoxFlow",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "identifier": "com.voxflow.app",
   "build": {
     "frontendDist": "../src"
@@ -16,6 +16,8 @@
         "height": 120,
         "minWidth": 200,
         "minHeight": 96,
+        "center": true,
+        "visible": true,
         "resizable": true,
         "alwaysOnTop": true,
         "decorations": false,
